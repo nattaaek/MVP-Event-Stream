@@ -1,0 +1,82 @@
+{
+  "consumer": {
+    "name": "ActivationConsumer"
+  },
+  "interactions": [
+    {
+      "contents": {
+        "content": {
+          "actionTypeId": "CREATE",
+          "parameters": {
+            "discount": 20,
+            "validity": "2023-12-31"
+          },
+          "promotionId": "123e4567-e89b-12d3-a456-426614174000"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a promotion message",
+      "matchingRules": {
+        "body": {
+          "$.actionTypeId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.parameters.discount": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.parameters.validity": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "^\\d{4}-\\d{2}-\\d{2}$"
+              }
+            ]
+          },
+          "$.promotionId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "^[\\da-f]{8}-([\\da-f]{4}-){3}[\\da-f]{12}$"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "Promotion data is available"
+        }
+      ],
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.23",
+      "models": "1.2.5"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "SMAPIPricingMetadata"
+  }
+}

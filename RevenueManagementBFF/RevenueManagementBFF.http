@@ -1,0 +1,6 @@
+@RevenueManagementBFF_HostAddress = http://localhost:5185
+
+GET {{RevenueManagementBFF_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

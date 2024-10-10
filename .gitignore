@@ -1,0 +1,156 @@
+# .NET (C#) related
+###################
+# Ignore build outputs and NuGet packages
+bin/
+obj/
+out/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+*.csproj.user
+*.userosscache
+
+# Ignore Visual Studio files
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sln.ide
+
+# Ignore Rider files
+.idea/
+*.sln.iml
+
+# Ignore user-specific files
+*.swp
+*.sln.docstates
+
+# Ignore build output
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.build.cs
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# DotNet CLI Tool settings
+.dotnet/
+
+# Rider project files
+.idea/
+
+# Node.js (React/TypeScript) related
+######################################
+# Dependency directories
+node_modules/
+yarn.lock
+.pnp.*
+.pnp/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production build
+build/
+dist/
+
+# Coverage and testing
+coverage/
+*.lcov
+
+# TypeScript related
+#####################
+# Ignore cache and build artifacts
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+lib/
+*.d.ts
+*.js.map
+
+# Ignore specific TypeScript output directories
+dist/
+.eslintrc.js
+jest.config.js
+
+# React specific files
+#######################
+# Ignore React temporary and editor files
+.next/
+.vscode/
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+
+# Ignore IDE specific files
+############################
+# Ignore Visual Studio Code settings
+.vscode/
+.vscode-test/
+*.code-workspace
+
+# Ignore JetBrains IDEs (IntelliJ, WebStorm, Rider, etc.)
+.idea/
+*.iml
+
+# Scala related
+################
+# IntelliJ
+*.iws
+.idea/
+*.iml
+*.ipr
+target/
+lib_managed/
+src_managed/
+project/target/
+project/project/
+.mvn/
+.classpath
+.project
+.settings/
+
+# Scala specific output
+*.class
+*.log
+.cache/
+.project/
+.dist/
+.dist/
+.scala_dependencies
+
+# SBT-related files
+######################
+lib_managed/
+target/
+project/target/
+project/project/
+.history
+
+# Scala Metals (Editor for Scala)
+.metals/
+.bloop/
+bsp/
+.ensime_cache/
+.scalafmt.conf
+
+# Thumbnails
+*~.nfs*
+
+# Ignore macOS files
+#####################
+.DS_Store
+
+# Ignore Windows files
+#######################
+Thumbs.db
+ehthumbs.db
