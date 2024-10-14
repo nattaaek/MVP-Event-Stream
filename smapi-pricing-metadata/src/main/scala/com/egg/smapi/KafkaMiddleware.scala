@@ -8,13 +8,14 @@ import io.circe.syntax._
 import io.circe.Json
 import sangria.ast
 
-object KafkaMiddleware extends Middleware[Any] with MiddlewareAfterField[Any] {
+object KafkaMiddleware extends Middleware[MyContext] with MiddlewareAfterField[MyContext] {
   type QueryVal = Unit
   type FieldVal = Unit
 
   case class KafkaMessage(
     actionType: String,
-    parameters: Map[String, Json]
+    parameters: Map[String, Json],
+    userId: Option[String]
   )
 
   // Convert Map[String, Any] to Map[String, Json]
@@ -46,31 +47,33 @@ object KafkaMiddleware extends Middleware[Any] with MiddlewareAfterField[Any] {
   }
 
   // This is called before the query starts.
-  override def beforeQuery(context: MiddlewareQueryContext[Any, _, _]): QueryVal = ()
+  override def beforeQuery(context: MiddlewareQueryContext[MyContext, _, _]): QueryVal = ()
 
   // This is called before a field is resolved.
-  override def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[Any, _, _], ctx: Context[Any, _]): BeforeFieldResult[Any, FieldVal] = continue
+  override def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[MyContext, _, _], ctx: Context[MyContext, _]): BeforeFieldResult[MyContext, FieldVal] = continue
 
   // This is called after the query completes.
-  override def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[Any, _, _]): Unit = ()
+  override def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[MyContext, _, _]): Unit = ()
 
   // This is called after a field resolves.
   override def afterField(
     queryVal: QueryVal,
     fieldVal: FieldVal,
     value: Any,
-    mctx: MiddlewareQueryContext[Any, _, _],
-    ctx: Context[Any, _]
+    mctx: MiddlewareQueryContext[MyContext, _, _],
+    ctx: Context[MyContext, _]
   ): Option[Any] = {
     // Only proceed if this is a mutation and this field is the root mutation field.
     if (isMutation(mctx) && ctx.parentType.name == "Mutation") {
       val actionType = ctx.field.name
       val rawParameters = ctx.args.raw
       val jsonParameters = convertToJson(rawParameters)
+      val userId = ctx.ctx.userId
 
       val message = KafkaMessage(
         actionType = actionType,
-        parameters = jsonParameters
+        parameters = jsonParameters,
+        userId = userId
       )
 
       // Send the message and return the original value.

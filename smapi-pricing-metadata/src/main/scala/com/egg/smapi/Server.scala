@@ -22,23 +22,26 @@ object Server extends App {
   implicit val executionContext: ExecutionContext = system.dispatcher
   implicit val materializer = SystemMaterializer(system).materializer
 
-  // Define the route
-val route =
-  path("graphql") {
-    post {
-      entity(as[String]) { requestJson =>
-        val query = parseRequest(requestJson)
+  // Import the directive
+  import akka.http.scaladsl.server.Directives.optionalHeaderValueByName
 
-        query match {
-          case Success(QueryMessage(query, operationName, variables)) =>
-            complete(executeGraphQLQuery(query, operationName, variables))
-          case Failure(error) =>
-            complete(HttpResponse(StatusCodes.BadRequest, entity = s"Invalid request: ${error.getMessage}"))
+  val route =
+    path("graphql") {
+      post {
+        optionalHeaderValueByName("x-user-id") { userIdHeader =>
+          entity(as[String]) { requestJson =>
+            val query = parseRequest(requestJson)
+
+            query match {
+              case Success(QueryMessage(query, operationName, variables)) =>
+                complete(executeGraphQLQuery(query, operationName, variables, userIdHeader))
+              case Failure(error) =>
+                complete(HttpResponse(StatusCodes.BadRequest, entity = s"Invalid request: ${error.getMessage}"))
+            }
+          }
         }
       }
     }
-  }
-
 
   // Start the server
   val bindingFuture: Future[Http.ServerBinding] = Http().newServerAt("localhost", 8080).bind(route)
@@ -73,42 +76,40 @@ val route =
   }
 
   // Method to execute the GraphQL query
-def executeGraphQLQuery(query: String, operationName: Option[String], variables: Json): Future[HttpResponse] = {
-  QueryParser.parse(query) match {
-    case Success(queryAst: Document) =>
-      Executor.execute(
-        schema = schema,
-        queryAst = queryAst,
-        userContext = new MyContext,
-        variables = if (variables.isNull) Json.obj() else variables,
-        operationName = operationName,
-        middleware = KafkaMiddleware :: Nil // Register the middleware here
-      ).map { result =>
-        HttpResponse(
-          status = StatusCodes.OK,
-          entity = HttpEntity(ContentTypes.`application/json`, result.noSpaces)
-        )
-      }.recover {
-        case error: QueryAnalysisError =>
-          HttpResponse(StatusCodes.BadRequest, entity = error.resolveError.noSpaces)
-        case error: ErrorWithResolver =>
-          HttpResponse(StatusCodes.InternalServerError, entity = error.resolveError.noSpaces)
-        case error =>
-          HttpResponse(StatusCodes.InternalServerError, entity = error.getMessage)
-      }
+  def executeGraphQLQuery(query: String, operationName: Option[String], variables: Json, userIdHeader: Option[String]): Future[HttpResponse] = {
+    QueryParser.parse(query) match {
+      case Success(queryAst: Document) =>
+        Executor.execute(
+          schema = schema,
+          queryAst = queryAst,
+          userContext = new MyContext(userIdHeader),
+          variables = if (variables.isNull) Json.obj() else variables,
+          operationName = operationName,
+          middleware = KafkaMiddleware :: Nil // Register the middleware here
+        ).map { result =>
+          HttpResponse(
+            status = StatusCodes.OK,
+            entity = HttpEntity(ContentTypes.`application/json`, result.noSpaces)
+          )
+        }.recover {
+          case error: QueryAnalysisError =>
+            HttpResponse(StatusCodes.BadRequest, entity = error.resolveError.noSpaces)
+          case error: ErrorWithResolver =>
+            HttpResponse(StatusCodes.InternalServerError, entity = error.resolveError.noSpaces)
+          case error =>
+            HttpResponse(StatusCodes.InternalServerError, entity = error.getMessage)
+        }
 
-    case Failure(error) =>
-      Future.successful(HttpResponse(StatusCodes.BadRequest, entity = s"Failed to parse GraphQL query: ${error.getMessage}"))
+      case Failure(error) =>
+        Future.successful(HttpResponse(StatusCodes.BadRequest, entity = s"Failed to parse GraphQL query: ${error.getMessage}"))
+    }
   }
-}
-
-
 }
 
 // Case class to represent the GraphQL request message
 case class QueryMessage(query: String, operationName: Option[String], variables: Json)
 
-// Define your context class if needed
-class MyContext {
+// Update MyContext to include userId
+class MyContext(val userId: Option[String]) {
   // Add any contextual data or services needed in your resolvers
 }

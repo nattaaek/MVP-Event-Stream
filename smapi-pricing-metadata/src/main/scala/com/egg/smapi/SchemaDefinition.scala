@@ -75,7 +75,7 @@ val MutationType: ObjectType[Unit, Unit] = ObjectType(
   )
 
   // Define the schema with both query and mutation types
-  val schema: Schema[Any, Unit] = Schema(
+  val schema: Schema[MyContext, Unit] = Schema(
     query = QueryType,
     mutation = Some(MutationType)
   )

@@ -8,7 +8,6 @@ import io.circe.generic.auto._
 import com.egg.smapi.KafkaMiddleware.KafkaMessage
 
 object KafkaProducerApp {
-  import io.circe.syntax._
 
   private val props = new Properties()
   props.put("bootstrap.servers", "localhost:9092")

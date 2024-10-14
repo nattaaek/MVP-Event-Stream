@@ -40,7 +40,7 @@ namespace ActivationConsumer.Tests
                         "123e4567-e89b-12d3-a456-426614174000",
                         @"^[\da-f]{8}-([\da-f]{4}-){3}[\da-f]{12}$"
                     ),
-                    actionTypeId = Match.Type("CREATE"),
+                    actionTypeId = Match.Type("Promotion"), 
                     parameters = new
                     {
                         discount = Match.Type(20),
@@ -55,7 +55,7 @@ namespace ActivationConsumer.Tests
                     // Verification logic
                     Assert.NotNull(messageContent);
                     Assert.Equal("123e4567-e89b-12d3-a456-426614174000", messageContent.PromotionId);
-                    Assert.Equal("CREATE", messageContent.ActionTypeId);
+                    Assert.Equal("Promotion", messageContent.ActionTypeId);
                     Assert.Equal(20, messageContent.Parameters.Discount);
                     Assert.Equal("2023-12-31", messageContent.Parameters.Validity);
                 });

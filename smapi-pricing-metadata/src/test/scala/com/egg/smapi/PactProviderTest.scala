@@ -3,33 +3,31 @@ package com.egg.smapi
 import org.scalatest.funsuite.AnyFunSuite
 import pact4s.scalatest.MessagePactVerifier
 import pact4s.provider._
-import java.io.File
-import pact4s.provider.ResponseBuilder.MessageAndMetadataBuilder
 import io.circe.syntax._
 import io.circe.generic.auto._
 import com.egg.smapi.KafkaMiddleware.KafkaMessage
+import pact4s.provider.ResponseBuilder.MessageAndMetadataBuilder
+import io.circe.Json
 
 class PactProviderVerificationSpec extends AnyFunSuite with MessagePactVerifier {
   // Define the provider details and the Pact source
   override val provider: ProviderInfoBuilder = ProviderInfoBuilder(
     name = "SMAPIPricingMetadata",
-    pactSource = PactSource.FileSource(
-      ("ActivationConsumer", new File("pacts/ActivationConsumer-SMAPIPricingMetadata.json"))
+    pactSource = PactSource.PactBrokerWithSelectors(
+      brokerUrl = "http://localhost:9292"
     )
   )
 
   // Define the messages that need to be verified
   override def messages: String => ResponseBuilder = {
     case "a promotion message" =>
-      // Generate the message content using KafkaMiddleware.KafkaMessage
-      val promotionId = java.util.UUID.randomUUID().toString // Ensure promotionId is a valid non-null String
       val messageContent = KafkaMessage(
         actionType = "CREATE",
         parameters = Map(
-          "promotionId" -> promotionId.asJson,
-          "discount" -> 20.asJson,
-          "validity" -> java.time.LocalDate.now().toString.asJson
-        )
+          "discount" -> Json.fromInt(20),
+          "validity" -> Json.fromString(java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE))
+        ),
+        userId = Some("user123") // Optional field
       )
 
       // Return the message content and metadata for Pact verification
@@ -41,6 +39,13 @@ class PactProviderVerificationSpec extends AnyFunSuite with MessagePactVerifier 
 
   // Define the test that sends the message and runs the verification
   test("pact verification for a promotion message") {
-    verifyPacts() // This runs the verification against the pact file.
+    verifyPacts(
+      providerBranch = Some(Branch("main")),
+      publishVerificationResults = Some(
+        PublishVerificationResults(
+          providerVersion = "1.0.0"
+        )
+      )
+    )
   }
 }
